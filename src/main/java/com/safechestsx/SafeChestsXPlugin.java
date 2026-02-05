@@ -30,9 +30,11 @@ import java.util.UUID;
 
 public class SafeChestsXPlugin extends JavaPlugin {
     private ClaimsManager claimsManager;
+    private VirtualChestManager virtualChestManager;
     private Messages messages;
     private final Map<UUID, Set<org.bukkit.Location>> selections = new HashMap<>();
     private NamespacedKey wandKey;
+    private net.milkbowl.vault.economy.Economy economy;
 
     @Override
     public void onEnable() {
@@ -41,18 +43,38 @@ public class SafeChestsXPlugin extends JavaPlugin {
         messages = new Messages(getConfig());
         claimsManager = new ClaimsManager(this);
         claimsManager.load();
+        virtualChestManager = new VirtualChestManager(this);
+        virtualChestManager.load();
+        setupEconomy();
         ClaimCommand command = new ClaimCommand(this);
         if (getCommand("claimchest") != null) {
             getCommand("claimchest").setExecutor(command);
             getCommand("claimchest").setTabCompleter(command);
         }
+        ChestCommand chestCommand = new ChestCommand(this, virtualChestManager);
+        if (getCommand("chest") != null) {
+            getCommand("chest").setExecutor(chestCommand);
+            getCommand("chest").setTabCompleter(chestCommand);
+        }
+        if (getCommand("chestpay") != null) {
+            getCommand("chestpay").setExecutor(chestCommand);
+            getCommand("chestpay").setTabCompleter(chestCommand);
+        }
         registerListener(new ClaimListener(this));
+        registerListener(new VirtualChestListener(virtualChestManager));
+        getServer().getServicesManager().register(com.safechestsx.api.SafeChestsXAPI.class,
+                new com.safechestsx.api.SafeChestsXAPIImpl(claimsManager, virtualChestManager),
+                this,
+                org.bukkit.plugin.ServicePriority.Normal);
     }
 
     @Override
     public void onDisable() {
         if (claimsManager != null) {
             claimsManager.saveSync();
+        }
+        if (virtualChestManager != null) {
+            virtualChestManager.saveSync();
         }
     }
 
@@ -68,8 +90,23 @@ public class SafeChestsXPlugin extends JavaPlugin {
         return claimsManager;
     }
 
+    public VirtualChestManager getVirtualChestManager() {
+        return virtualChestManager;
+    }
+
     public Messages getMessages() {
         return messages;
+    }
+
+    public net.milkbowl.vault.economy.Economy getEconomy() {
+        return economy;
+    }
+
+    public String formatCurrency(double amount) {
+        if (economy != null) {
+            return economy.format(amount);
+        }
+        return String.format("$%,.2f", amount);
     }
 
     public boolean isContainerBlock(Block block) {
@@ -235,5 +272,16 @@ public class SafeChestsXPlugin extends JavaPlugin {
 
     public boolean isProtectedExplosion(Entity entity) {
         return entity instanceof Creeper || entity instanceof TNTPrimed || entity instanceof ExplosiveMinecart;
+    }
+
+    private void setupEconomy() {
+        if (getServer().getPluginManager().getPlugin("Vault") == null) {
+            economy = null;
+            return;
+        }
+        var registration = getServer().getServicesManager().getRegistration(net.milkbowl.vault.economy.Economy.class);
+        if (registration != null) {
+            economy = registration.getProvider();
+        }
     }
 }

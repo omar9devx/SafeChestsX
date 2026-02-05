@@ -33,6 +33,16 @@ public class Messages {
         sender.sendMessage(color(getRaw("prefix") + format(path, replacements)));
     }
 
+    public void sendList(CommandSender sender, String path, Map<String, String> replacements) {
+        for (String line : config.getStringList("messages." + path)) {
+            String message = line;
+            for (Map.Entry<String, String> entry : replacements.entrySet()) {
+                message = message.replace("{" + entry.getKey() + "}", entry.getValue());
+            }
+            sender.sendMessage(color(getRaw("prefix") + message));
+        }
+    }
+
     public String color(String input) {
         return ChatColor.translateAlternateColorCodes('&', input);
     }

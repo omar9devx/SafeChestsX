@@ -6,12 +6,17 @@ messages:
   selection-remove: "&eRemoved container from selection."
   selection-invalid: "&cThat block is not a container."
   selection-empty: "&cYou have no selected containers."
+  selection-status: "&aSelection size: &f{count}&a. Any claimed: &f{claimed}&a."
+  selection-status-yes: "&aYes"
+  selection-status-no: "&cNo"
   claim-created: "&aClaim '&f{claim}&a' created with {count} containers."
   claim-exists: "&cA claim with that name already exists."
   claim-missing: "&cThat claim does not exist."
   claim-not-owner: "&cYou do not own this claim."
   claim-protected: "&cThis container is protected."
   claim-invalid: "&cInvalid claim name."
+  claim-limit: "&cYou have reached the max number of claims ({limit})."
+  chest-limit: "&cToo many containers selected ({count}). Max allowed is {limit}."
   trust-added: "&aTrusted {player} for claim '&f{claim}&a'."
   trust-removed: "&eUntrusted {player} for claim '&f{claim}&e'."
   manage-info: "&aClaim '&f{claim}&a' owner: &f{owner}&a, containers: &f{count}&a, trusted: &f{trusted}&a."
@@ -20,9 +25,49 @@ messages:
   selection-claimed: "&cOne or more containers are already claimed."
   claim-added: "&aAdded {count} containers to claim '&f{claim}&a'."
   claim-removed: "&eRemoved {count} containers from claim '&f{claim}&e'."
+  claim-removed-last: "&eRemoved last containers from claim '&f{claim}&e'. Claim deleted."
+  info-target: "&cLook at a claimed container to view info."
+  unclaim-target: "&cLook at a claimed container to unclaim it."
+  unclaim-success: "&cClaim '&f{claim}&c' has been removed."
   trust-target: "&cLook at a claimed container or use /claimchest manage."
   player-not-found: "&cPlayer not found."
   reload: "&aConfiguration reloaded."
+  list-header: "&aListing {count} claims ({scope})."
+  list-entry: "&7- &f{claim}&7 (owner: &f{owner}&7, containers: &f{count}&7)"
+  list-empty: "&eNo claims found."
+  list-scope-all: "&eall"
+  list-scope-yours: "&eyours"
+  chest-invalid: "&cInvalid chest number."
+  chest-locked: "&cChest {index} is locked. You have {limit} chests."
+  chestpay-invalid: "&cUsage: /chestpay <amount>"
+  chestpay-pending: "&eConfirm purchase of {count} chests for {total} ({price} each). Use /chestpay confirm."
+  chestpay-none: "&cYou have no pending purchase."
+  chestpay-expired: "&cYour pending purchase expired. Run /chestpay again."
+  chestpay-cancelled: "&ePurchase cancelled."
+  chestpay-insufficient: "&cYou need {total} to buy these chests."
+  chestpay-success: "&aPurchased {count} chests for {total}."
+  chestpay-max: "&cYou have reached the max chest limit ({limit})."
+  vault-missing: "&cVault economy not available."
+  claim-help:
+    - "&e/claimchest &7- get the claim wand and guide."
+    - "&e/claimchest claim <name> &7- claim selected containers."
+    - "&e/claimchest trust <player> &7- trust a player on the claim you're looking at."
+    - "&e/claimchest untrust <player> &7- untrust a player on the claim you're looking at."
+    - "&e/claimchest manage <claim> <add|remove|info|delete|rename|trust|untrust> &7- manage claims."
+    - "&e/claimchest selection &7- show selection status."
+    - "&e/claimchest info &7- show claim info for targeted container."
+    - "&e/claimchest list [all] &7- list your claims or all claims (admin)."
+    - "&e/claimchest unclaim &7- remove the claim you're looking at."
+    - "&e/claimchest reload &7- reload configuration (admin)."
+  chest-help:
+    - "&e/chest <number> &7- open your virtual chest."
+    - "&e/chestpay <amount> &7- buy additional virtual chests."
+    - "&e/chestpay confirm &7- confirm a pending purchase."
+    - "&e/chestpay cancel &7- cancel a pending purchase."
+  chestpay-help:
+    - "&e/chestpay <amount> &7- start a purchase for more virtual chests."
+    - "&e/chestpay confirm &7- confirm and pay with Vault."
+    - "&e/chestpay cancel &7- cancel the pending purchase."
 settings:
   wand-material: WOODEN_SHOVEL
   wand-name: "&aClaim Wand"
@@ -35,3 +80,11 @@ settings:
   claim-name-min-length: 3
   claim-name-max-length: 24
   claim-name-regex: "^[A-Za-z0-9_-]+$"
+  max-claims-per-player: 0
+  max-chests-per-claim: 0
+  default-virtual-chests: 10
+  max-virtual-chests: 0
+  virtual-chest-size: 27
+  virtual-chest-title: "&8Virtual Chest &7#{index}"
+  virtual-chest-price: 1000000
+  chestpay-confirm-timeout-ms: 60000
