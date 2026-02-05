@@ -100,6 +100,16 @@ public class ClaimsManager {
         return claimsByName.values();
     }
 
+    public Collection<Claim> getClaimsOwnedBy(UUID owner) {
+        Set<Claim> owned = new HashSet<>();
+        for (Claim claim : claimsByName.values()) {
+            if (claim.getOwner().equals(owner)) {
+                owned.add(claim);
+            }
+        }
+        return owned;
+    }
+
     public Claim getClaimByChestKey(String key) {
         String claimName = claimByChestKey.get(key);
         return claimName == null ? null : claimsByName.get(claimName.toLowerCase());

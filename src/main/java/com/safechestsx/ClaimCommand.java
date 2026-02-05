@@ -42,6 +42,8 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
             case "trust" -> handleTrust(player, args, true);
             case "untrust" -> handleTrust(player, args, false);
             case "manage" -> handleManage(player, args);
+            case "list" -> handleList(player, args);
+            case "selection" -> handleSelection(player);
             case "reload" -> handleReload(player);
             default -> plugin.giveWandAndGuide(player);
         }
@@ -66,9 +68,22 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
             plugin.getMessages().send(player, "claim-exists");
             return;
         }
+        int maxClaims = plugin.getConfig().getInt("settings.max-claims-per-player", 0);
+        if (maxClaims > 0 && plugin.getClaimsManager().getClaimsOwnedBy(player.getUniqueId()).size() >= maxClaims) {
+            plugin.getMessages().send(player, "claim-limit", Map.of("limit", String.valueOf(maxClaims)));
+            return;
+        }
         Set<org.bukkit.Location> selection = plugin.getSelection(player);
         if (selection.isEmpty()) {
             plugin.getMessages().send(player, "selection-empty");
+            return;
+        }
+        int maxChests = plugin.getConfig().getInt("settings.max-chests-per-claim", 0);
+        if (maxChests > 0 && selection.size() > maxChests) {
+            plugin.getMessages().send(player, "chest-limit", Map.of(
+                    "count", String.valueOf(selection.size()),
+                    "limit", String.valueOf(maxChests)
+            ));
             return;
         }
         if (plugin.anyClaimed(selection)) {
@@ -173,6 +188,14 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
             plugin.getMessages().send(player, "selection-empty");
             return;
         }
+        int maxChests = plugin.getConfig().getInt("settings.max-chests-per-claim", 0);
+        if (maxChests > 0 && claim.getChestKeys().size() + selection.size() > maxChests) {
+            plugin.getMessages().send(player, "chest-limit", Map.of(
+                    "count", String.valueOf(claim.getChestKeys().size() + selection.size()),
+                    "limit", String.valueOf(maxChests)
+            ));
+            return;
+        }
         int added = plugin.getClaimsManager().addChests(claim, selection);
         plugin.clearSelection(player);
         plugin.getClaimsManager().saveAsync();
@@ -266,16 +289,56 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
         plugin.getMessages().send(player, "reload");
     }
 
+    private void handleSelection(Player player) {
+        Set<org.bukkit.Location> selection = plugin.getSelection(player);
+        String claimed = plugin.anyClaimed(selection) ? "yes" : "no";
+        plugin.getMessages().send(player, "selection-status", Map.of(
+                "count", String.valueOf(selection.size()),
+                "claimed", claimed
+        ));
+    }
+
+    private void handleList(Player player, String[] args) {
+        boolean listAll = args.length > 1 && args[1].equalsIgnoreCase("all");
+        if (listAll && !player.hasPermission("safechestsx.admin")) {
+            plugin.getMessages().send(player, "no-permission");
+            return;
+        }
+        List<Claim> claims = listAll
+                ? new ArrayList<>(plugin.getClaimsManager().getClaims())
+                : new ArrayList<>(plugin.getClaimsManager().getClaimsOwnedBy(player.getUniqueId()));
+        if (claims.isEmpty()) {
+            plugin.getMessages().send(player, "list-empty");
+            return;
+        }
+        plugin.getMessages().send(player, "list-header", Map.of(
+                "count", String.valueOf(claims.size()),
+                "scope", listAll ? "all" : "yours"
+        ));
+        claims.sort((a, b) -> a.getName().compareToIgnoreCase(b.getName()));
+        for (Claim claim : claims) {
+            String ownerName = org.bukkit.Bukkit.getOfflinePlayer(claim.getOwner()).getName();
+            plugin.getMessages().send(player, "list-entry", Map.of(
+                    "claim", claim.getName(),
+                    "owner", ownerName == null ? claim.getOwner().toString() : ownerName,
+                    "count", String.valueOf(claim.getChestKeys().size())
+            ));
+        }
+    }
+
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
         if (args.length == 1) {
-            return filter(List.of("claim", "trust", "untrust", "manage", "reload"), args[0]);
+            return filter(List.of("claim", "trust", "untrust", "manage", "list", "selection", "reload"), args[0]);
         }
         if (args.length == 2 && args[0].equalsIgnoreCase("manage")) {
             return filter(plugin.getClaimsManager().getClaims().stream().map(Claim::getName).toList(), args[1]);
         }
         if (args.length == 3 && args[0].equalsIgnoreCase("manage")) {
             return filter(List.of("add", "remove", "info", "delete", "rename", "trust", "untrust"), args[2]);
+        }
+        if (args.length == 2 && args[0].equalsIgnoreCase("list")) {
+            return filter(List.of("all"), args[1]);
         }
         return Collections.emptyList();
     }
