@@ -8,6 +8,7 @@ import org.bukkit.inventory.Inventory;
 import java.util.Collection;
 import java.util.UUID;
 
+@Deprecated
 public interface SafeChestsXAPI {
     Claim getClaimByLocation(Location location);
 

@@ -38,6 +38,9 @@ public class SafeChestsXPlugin extends JavaPlugin {
 
     @Override
     public void onEnable() {
+        if (!com.safechestsx.VersionSupport.INSTANCE.verifyOrDisable(this)) {
+            return;
+        }
         saveDefaultConfig();
         wandKey = new NamespacedKey(this, "claim_wand");
         messages = new Messages(getConfig());
@@ -64,6 +67,10 @@ public class SafeChestsXPlugin extends JavaPlugin {
         registerListener(new VirtualChestListener(virtualChestManager));
         getServer().getServicesManager().register(com.safechestsx.api.SafeChestsXAPI.class,
                 new com.safechestsx.api.SafeChestsXAPIImpl(claimsManager, virtualChestManager),
+                this,
+                org.bukkit.plugin.ServicePriority.Normal);
+        getServer().getServicesManager().register(com.safechestsx.api.v3.SafeChestsXApiV3.class,
+                new com.safechestsx.api.v3.SafeChestsXApiV3Impl(claimsManager, virtualChestManager),
                 this,
                 org.bukkit.plugin.ServicePriority.Normal);
     }

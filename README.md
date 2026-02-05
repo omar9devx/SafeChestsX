@@ -11,6 +11,7 @@ SafeChestsX is a lightweight Bukkit/Spigot plugin for claiming and protecting co
 - Optional limits for max claims per player and max containers per claim.
 - Virtual chests accessible anywhere with optional Vault-powered purchases.
 - Public API (service-registered) for other plugins to query claims or virtual chests.
+- Supports Paper **1.21.4 - 1.21.11** (best tested on **1.21.4 - 1.21.7**).
 
 ## Core Commands
 - `/claimchest` - receive the claim wand and guide book.
@@ -27,18 +28,26 @@ SafeChestsX is a lightweight Bukkit/Spigot plugin for claiming and protecting co
 - `/chestpay <amount>` - buy more virtual chests (uses Vault economy).
 
 ## API
-SafeChestsX registers a service with Bukkit's `ServicesManager`, similar to Vault. Other plugins can access it like this:
+SafeChestsX registers a service with Bukkit's `ServicesManager`, similar to Vault. For new integrations use the V3 API.
 
 ```java
-SafeChestsXAPI api = SafeChestsXAPIProvider.get().orElse(null);
+SafeChestsXApiV3 api = SafeChestsXApiV3Provider.get();
 if (api != null) {
     boolean claimed = api.isClaimed(location);
 }
 ```
 
 ```kotlin
-val api = SafeChestsXApi.get()
+val api = SafeChestsXApiV3Provider.get()
 if (api != null) {
     val claimed = api.isClaimed(location)
 }
 ```
+
+Legacy Java API is still available but deprecated:
+```java
+SafeChestsXAPI legacy = SafeChestsXAPIProvider.get().orElse(null);
+```
+
+## Download & Install
+See [download.md](download.md) for the full step-by-step guide.
