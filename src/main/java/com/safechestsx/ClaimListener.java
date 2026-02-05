@@ -9,6 +9,8 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockExplodeEvent;
+import org.bukkit.event.block.BlockPistonExtendEvent;
+import org.bukkit.event.block.BlockPistonRetractEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.inventory.InventoryMoveItemEvent;
 import org.bukkit.event.inventory.InventoryOpenEvent;
@@ -17,6 +19,7 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.Iterator;
+import java.util.List;
 
 public class ClaimListener implements Listener {
     private final SafeChestsXPlugin plugin;
@@ -117,6 +120,20 @@ public class ClaimListener implements Listener {
     }
 
     @EventHandler
+    public void onPistonExtend(BlockPistonExtendEvent event) {
+        if (isClaimedPistonMove(event.getBlocks())) {
+            event.setCancelled(true);
+        }
+    }
+
+    @EventHandler
+    public void onPistonRetract(BlockPistonRetractEvent event) {
+        if (isClaimedPistonMove(event.getBlocks())) {
+            event.setCancelled(true);
+        }
+    }
+
+    @EventHandler
     public void onInventoryMove(InventoryMoveItemEvent event) {
         if (isClaimedInventory(event.getSource()) || isClaimedInventory(event.getDestination())) {
             event.setCancelled(true);
@@ -141,5 +158,19 @@ public class ClaimListener implements Listener {
             return false;
         }
         return plugin.getClaimsManager().isClaimed(location);
+    }
+
+    private boolean isClaimedPistonMove(List<Block> blocks) {
+        for (Block block : blocks) {
+            if (!plugin.isContainerBlock(block)) {
+                continue;
+            }
+            for (org.bukkit.Location location : plugin.getContainerLocations(block)) {
+                if (plugin.getClaimsManager().isClaimed(location)) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 }

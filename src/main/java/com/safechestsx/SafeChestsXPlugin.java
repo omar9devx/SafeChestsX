@@ -25,6 +25,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.LinkedHashSet;
 import java.util.UUID;
 
 public class SafeChestsXPlugin extends JavaPlugin {
@@ -79,12 +80,40 @@ public class SafeChestsXPlugin extends JavaPlugin {
     public org.bukkit.Location getInventoryLocation(Inventory inventory) {
         InventoryHolder holder = inventory.getHolder();
         if (holder instanceof org.bukkit.block.DoubleChest doubleChest) {
-            return doubleChest.getLocation();
+            InventoryHolder left = doubleChest.getLeftSide();
+            if (left instanceof BlockState leftState) {
+                return leftState.getLocation();
+            }
         }
         if (holder instanceof BlockState state) {
             return state.getLocation();
         }
         return null;
+    }
+
+    public Set<org.bukkit.Location> getContainerLocations(Block block) {
+        Set<org.bukkit.Location> locations = new LinkedHashSet<>();
+        if (!isContainerBlock(block)) {
+            return locations;
+        }
+        BlockState state = block.getState();
+        if (state instanceof org.bukkit.block.Chest chest) {
+            Inventory inventory = chest.getInventory();
+            InventoryHolder holder = inventory.getHolder();
+            if (holder instanceof org.bukkit.block.DoubleChest doubleChest) {
+                InventoryHolder left = doubleChest.getLeftSide();
+                InventoryHolder right = doubleChest.getRightSide();
+                if (left instanceof BlockState leftState) {
+                    locations.add(leftState.getLocation());
+                }
+                if (right instanceof BlockState rightState) {
+                    locations.add(rightState.getLocation());
+                }
+                return locations;
+            }
+        }
+        locations.add(block.getLocation());
+        return locations;
     }
 
     public boolean isWand(ItemStack item) {
@@ -139,7 +168,8 @@ public class SafeChestsXPlugin extends JavaPlugin {
             messages.send(player, "selection-invalid");
             return;
         }
-        selections.computeIfAbsent(player.getUniqueId(), k -> new HashSet<>()).add(location);
+        Set<org.bukkit.Location> targets = getContainerLocations(location.getBlock());
+        selections.computeIfAbsent(player.getUniqueId(), k -> new HashSet<>()).addAll(targets);
         messages.send(player, "selection-add");
     }
 
@@ -148,7 +178,8 @@ public class SafeChestsXPlugin extends JavaPlugin {
             messages.send(player, "selection-invalid");
             return;
         }
-        selections.computeIfAbsent(player.getUniqueId(), k -> new HashSet<>()).remove(location);
+        Set<org.bukkit.Location> targets = getContainerLocations(location.getBlock());
+        selections.computeIfAbsent(player.getUniqueId(), k -> new HashSet<>()).removeAll(targets);
         messages.send(player, "selection-remove");
     }
 
