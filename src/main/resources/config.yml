@@ -6,12 +6,15 @@ messages:
   selection-remove: "&eRemoved container from selection."
   selection-invalid: "&cThat block is not a container."
   selection-empty: "&cYou have no selected containers."
+  selection-status: "&aSelection size: &f{count}&a. Any claimed: &f{claimed}&a."
   claim-created: "&aClaim '&f{claim}&a' created with {count} containers."
   claim-exists: "&cA claim with that name already exists."
   claim-missing: "&cThat claim does not exist."
   claim-not-owner: "&cYou do not own this claim."
   claim-protected: "&cThis container is protected."
   claim-invalid: "&cInvalid claim name."
+  claim-limit: "&cYou have reached the max number of claims ({limit})."
+  chest-limit: "&cToo many containers selected ({count}). Max allowed is {limit}."
   trust-added: "&aTrusted {player} for claim '&f{claim}&a'."
   trust-removed: "&eUntrusted {player} for claim '&f{claim}&e'."
   manage-info: "&aClaim '&f{claim}&a' owner: &f{owner}&a, containers: &f{count}&a, trusted: &f{trusted}&a."
@@ -23,6 +26,9 @@ messages:
   trust-target: "&cLook at a claimed container or use /claimchest manage."
   player-not-found: "&cPlayer not found."
   reload: "&aConfiguration reloaded."
+  list-header: "&aListing {count} claims ({scope})."
+  list-entry: "&7- &f{claim}&7 (owner: &f{owner}&7, containers: &f{count}&7)"
+  list-empty: "&eNo claims found."
 settings:
   wand-material: WOODEN_SHOVEL
   wand-name: "&aClaim Wand"
@@ -35,3 +41,5 @@ settings:
   claim-name-min-length: 3
   claim-name-max-length: 24
   claim-name-regex: "^[A-Za-z0-9_-]+$"
+  max-claims-per-player: 0
+  max-chests-per-claim: 0
