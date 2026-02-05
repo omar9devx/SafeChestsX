@@ -27,6 +27,11 @@ tasks.jar {
     val kotlinStdlib = configurations.runtimeClasspath.get()
         .filter { it.name.startsWith("kotlin-stdlib") }
     from(kotlinStdlib.map { if (it.isDirectory) it else zipTree(it) })
+    archiveBaseName.set("SafeChestsX")
+}
+
+tasks.withType<ProcessResources> {
+    filteringCharset = "UTF-8"
 }
 
 tasks.withType<JavaCompile> {
