@@ -145,7 +145,11 @@ public class ChestCommand implements CommandExecutor, TabCompleter {
             ));
             return true;
         }
-        economy.withdrawPlayer(player, pending.total());
+        var response = economy.withdrawPlayer(player, pending.total());
+        if (response == null || !response.transactionSuccess()) {
+            plugin.getMessages().send(player, "chestpay-failed");
+            return true;
+        }
         boolean added = chestManager.addChestSlots(player.getUniqueId(), pending.count());
         pendingPurchases.remove(player.getUniqueId());
         if (!added) {

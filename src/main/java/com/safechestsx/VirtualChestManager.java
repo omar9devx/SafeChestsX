@@ -173,7 +173,8 @@ public class VirtualChestManager {
     }
 
     private int getDefaultLimit() {
-        return plugin.getConfig().getInt("settings.default-virtual-chests", 10);
+        int limit = plugin.getConfig().getInt("settings.default-virtual-chests", 10);
+        return Math.max(1, limit);
     }
 
     private int getChestSize() {

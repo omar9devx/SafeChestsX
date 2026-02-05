@@ -35,3 +35,10 @@ if (api != null) {
     boolean claimed = api.isClaimed(location);
 }
 ```
+
+```kotlin
+val api = SafeChestsXApi.get()
+if (api != null) {
+    val claimed = api.isClaimed(location)
+}
+```

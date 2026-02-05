@@ -47,6 +47,7 @@ messages:
   chestpay-insufficient: "&cYou need {total} to buy these chests."
   chestpay-success: "&aPurchased {count} chests for {total}."
   chestpay-max: "&cYou have reached the max chest limit ({limit})."
+  chestpay-failed: "&cTransaction failed. Try again later."
   vault-missing: "&cVault economy not available."
   claim-help:
     - "&e/claimchest &7- get the claim wand and guide."
