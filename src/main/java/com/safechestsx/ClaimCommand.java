@@ -58,6 +58,10 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
             return;
         }
         String name = args[1];
+        if (!plugin.isValidClaimName(name)) {
+            plugin.getMessages().send(player, "claim-invalid");
+            return;
+        }
         if (plugin.getClaimsManager().claimExists(name)) {
             plugin.getMessages().send(player, "claim-exists");
             return;
@@ -98,8 +102,8 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
             plugin.getMessages().send(player, "claim-not-owner");
             return;
         }
-        OfflinePlayer target = Bukkit.getOfflinePlayer(args[1]);
-        if (target.getName() == null) {
+        OfflinePlayer target = Bukkit.getOfflinePlayerIfCached(args[1]);
+        if (target == null || target.getName() == null) {
             plugin.getMessages().send(player, "player-not-found");
             return;
         }
@@ -213,6 +217,10 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
             player.sendMessage("/claimchest manage " + claim.getName() + " rename -a <newName>");
             return;
         }
+        if (!plugin.isValidClaimName(newName)) {
+            plugin.getMessages().send(player, "claim-invalid");
+            return;
+        }
         if (plugin.getClaimsManager().claimExists(newName)) {
             plugin.getMessages().send(player, "claim-exists");
             return;
@@ -227,8 +235,8 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
             player.sendMessage("/claimchest manage " + claim.getName() + " " + (add ? "trust" : "untrust") + " -a <player>");
             return;
         }
-        OfflinePlayer target = Bukkit.getOfflinePlayer(playerName);
-        if (target.getName() == null) {
+        OfflinePlayer target = Bukkit.getOfflinePlayerIfCached(playerName);
+        if (target == null || target.getName() == null) {
             plugin.getMessages().send(player, "player-not-found");
             return;
         }

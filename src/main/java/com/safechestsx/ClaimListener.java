@@ -2,10 +2,7 @@ package com.safechestsx;
 
 import org.bukkit.Material;
 import org.bukkit.block.Block;
-import org.bukkit.block.BlockState;
-import org.bukkit.block.Chest;
-import org.bukkit.inventory.DoubleChestInventory;
-import org.bukkit.inventory.InventoryHolder;
+import org.bukkit.inventory.Inventory;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -13,6 +10,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockExplodeEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
+import org.bukkit.event.inventory.InventoryMoveItemEvent;
 import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.event.inventory.PrepareItemCraftEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
@@ -30,7 +28,7 @@ public class ClaimListener implements Listener {
     @EventHandler
     public void onBlockBreak(BlockBreakEvent event) {
         Block block = event.getBlock();
-        if (!plugin.isChestBlock(block)) {
+        if (!plugin.isContainerBlock(block)) {
             return;
         }
         Claim claim = plugin.getClaimsManager().getClaimByChestKey(plugin.getClaimsManager().getChestKey(block.getLocation()));
@@ -43,20 +41,11 @@ public class ClaimListener implements Listener {
 
     @EventHandler
     public void onInventoryOpen(InventoryOpenEvent event) {
-        InventoryHolder holder = event.getInventory().getHolder();
-        BlockState state = null;
-        if (holder instanceof Chest chest) {
-            state = chest;
-        } else if (event.getInventory() instanceof DoubleChestInventory doubleChestInventory) {
-            InventoryHolder left = doubleChestInventory.getLeftSide().getHolder();
-            if (left instanceof Chest chest) {
-                state = chest;
-            }
-        }
-        if (state == null) {
+        org.bukkit.Location location = plugin.getInventoryLocation(event.getInventory());
+        if (location == null) {
             return;
         }
-        Claim claim = plugin.getClaimsManager().getClaimByChestKey(plugin.getClaimsManager().getChestKey(state.getLocation()));
+        Claim claim = plugin.getClaimsManager().getClaimByChestKey(plugin.getClaimsManager().getChestKey(location));
         if (claim == null) {
             return;
         }
@@ -76,7 +65,7 @@ public class ClaimListener implements Listener {
             return;
         }
         Block block = event.getClickedBlock();
-        if (!plugin.isChestBlock(block)) {
+        if (!plugin.isContainerBlock(block)) {
             return;
         }
         Player player = event.getPlayer();
@@ -110,7 +99,7 @@ public class ClaimListener implements Listener {
         Iterator<Block> iterator = event.blockList().iterator();
         while (iterator.hasNext()) {
             Block block = iterator.next();
-            if (plugin.isChestBlock(block)) {
+            if (plugin.isContainerBlock(block)) {
                 iterator.remove();
             }
         }
@@ -121,9 +110,16 @@ public class ClaimListener implements Listener {
         Iterator<Block> iterator = event.blockList().iterator();
         while (iterator.hasNext()) {
             Block block = iterator.next();
-            if (plugin.isChestBlock(block)) {
+            if (plugin.isContainerBlock(block)) {
                 iterator.remove();
             }
+        }
+    }
+
+    @EventHandler
+    public void onInventoryMove(InventoryMoveItemEvent event) {
+        if (isClaimedInventory(event.getSource()) || isClaimedInventory(event.getDestination())) {
+            event.setCancelled(true);
         }
     }
 
@@ -137,5 +133,13 @@ public class ClaimListener implements Listener {
             return;
         }
         event.getInventory().setResult(new ItemStack(Material.AIR));
+    }
+
+    private boolean isClaimedInventory(Inventory inventory) {
+        org.bukkit.Location location = plugin.getInventoryLocation(inventory);
+        if (location == null) {
+            return false;
+        }
+        return plugin.getClaimsManager().isClaimed(location);
     }
 }

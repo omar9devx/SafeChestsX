@@ -3,6 +3,7 @@ package com.safechestsx;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.block.Block;
+import org.bukkit.block.BlockState;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.TNTPrimed;
@@ -10,6 +11,8 @@ import org.bukkit.entity.minecart.ExplosiveMinecart;
 import org.bukkit.entity.monster.Creeper;
 import org.bukkit.event.Listener;
 import org.bukkit.inventory.ItemFlag;
+import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BookMeta;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -38,8 +41,10 @@ public class SafeChestsXPlugin extends JavaPlugin {
         claimsManager = new ClaimsManager(this);
         claimsManager.load();
         ClaimCommand command = new ClaimCommand(this);
-        getCommand("claimchest").setExecutor(command);
-        getCommand("claimchest").setTabCompleter(command);
+        if (getCommand("claimchest") != null) {
+            getCommand("claimchest").setExecutor(command);
+            getCommand("claimchest").setTabCompleter(command);
+        }
         registerListener(new ClaimListener(this));
     }
 
@@ -66,9 +71,20 @@ public class SafeChestsXPlugin extends JavaPlugin {
         return messages;
     }
 
-    public boolean isChestBlock(Block block) {
-        Material type = block.getType();
-        return type == Material.CHEST || type == Material.TRAPPED_CHEST;
+    public boolean isContainerBlock(Block block) {
+        BlockState state = block.getState();
+        return state instanceof InventoryHolder;
+    }
+
+    public org.bukkit.Location getInventoryLocation(Inventory inventory) {
+        InventoryHolder holder = inventory.getHolder();
+        if (holder instanceof org.bukkit.block.DoubleChest doubleChest) {
+            return doubleChest.getLocation();
+        }
+        if (holder instanceof BlockState state) {
+            return state.getLocation();
+        }
+        return null;
     }
 
     public boolean isWand(ItemStack item) {
@@ -111,15 +127,15 @@ public class SafeChestsXPlugin extends JavaPlugin {
         meta.setTitle(getConfig().getString("settings.book-title", "SafeChestsX Guide"));
         meta.setAuthor(getConfig().getString("settings.book-author", "SafeChestsX"));
         meta.setPages(List.of(
-                "SafeChestsX Quick Guide\n\n1) Run /claimchest to get the wand.\n2) Right click chests to select.\n3) /claimchest claim <name>\n4) /claimchest trust <player> while looking at a chest.\n\nUse /claimchest manage for advanced actions.",
-                "Manage Actions:\n- add/remove (with selection)\n- info\n- delete\n- rename -a <newName>\n- trust/untrust -a <player>\n\nClaims prevent breaking, opening, and explosions."
+                "SafeChestsX Quick Guide\n\n1) Run /claimchest to get the wand.\n2) Right click containers to select.\n3) /claimchest claim <name>\n4) /claimchest trust <player> while looking at a container.\n\nUse /claimchest manage for advanced actions.",
+                "Manage Actions:\n- add/remove (with selection)\n- info\n- delete\n- rename -a <newName>\n- trust/untrust -a <player>\n\nClaims prevent breaking, opening, explosions, and hopper access."
         ));
         book.setItemMeta(meta);
         return book;
     }
 
     public void addSelection(Player player, org.bukkit.Location location) {
-        if (!isChestBlock(location.getBlock())) {
+        if (!isContainerBlock(location.getBlock())) {
             messages.send(player, "selection-invalid");
             return;
         }
@@ -128,7 +144,7 @@ public class SafeChestsXPlugin extends JavaPlugin {
     }
 
     public void removeSelection(Player player, org.bukkit.Location location) {
-        if (!isChestBlock(location.getBlock())) {
+        if (!isContainerBlock(location.getBlock())) {
             messages.send(player, "selection-invalid");
             return;
         }
@@ -156,10 +172,23 @@ public class SafeChestsXPlugin extends JavaPlugin {
     public Claim getClaimPlayerIsLookingAt(Player player) {
         int range = getConfig().getInt("settings.selection-range", 5);
         Block target = player.getTargetBlockExact(range);
-        if (target == null || !isChestBlock(target)) {
+        if (target == null || !isContainerBlock(target)) {
             return null;
         }
         return claimsManager.getClaimByChestKey(claimsManager.getChestKey(target.getLocation()));
+    }
+
+    public boolean isValidClaimName(String name) {
+        if (name == null) {
+            return false;
+        }
+        int minLength = getConfig().getInt("settings.claim-name-min-length", 3);
+        int maxLength = getConfig().getInt("settings.claim-name-max-length", 24);
+        String pattern = getConfig().getString("settings.claim-name-regex", "^[A-Za-z0-9_-]+$");
+        if (name.length() < minLength || name.length() > maxLength) {
+            return false;
+        }
+        return name.matches(pattern);
     }
 
     public boolean canAccessClaim(Player player, Claim claim) {
