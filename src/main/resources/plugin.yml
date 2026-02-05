@@ -1,12 +1,20 @@
 name: SafeChestsX
-version: 2.1.0
+version: 3.1.0
 main: com.safechestsx.SafeChestsXPlugin
 api-version: 1.21
 author: SafeChestsX
+softdepend:
+  - Vault
 commands:
   claimchest:
     description: Manage chest claims.
     usage: /claimchest
+  chest:
+    description: Open virtual chests.
+    usage: /chest <number>
+  chestpay:
+    description: Purchase additional virtual chests.
+    usage: /chestpay <amount>
 permissions:
   safechestsx.use:
     description: Access base command.
@@ -23,3 +31,9 @@ permissions:
   safechestsx.admin:
     description: Bypass ownership checks.
     default: op
+  safechestsx.chest:
+    description: Access virtual chests.
+    default: true
+  safechestsx.chestpay:
+    description: Purchase virtual chests.
+    default: true

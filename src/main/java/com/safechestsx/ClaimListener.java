@@ -20,6 +20,7 @@ import org.bukkit.inventory.ItemStack;
 
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 public class ClaimListener implements Listener {
     private final SafeChestsXPlugin plugin;
@@ -38,8 +39,23 @@ public class ClaimListener implements Listener {
         if (claim == null) {
             return;
         }
+        Player player = event.getPlayer();
+        if (plugin.isOwnerOrAdmin(player, claim)) {
+            int removed = plugin.getClaimsManager().removeChests(claim, plugin.getContainerLocations(block));
+            if (claim.getChestKeys().isEmpty()) {
+                plugin.getClaimsManager().deleteClaim(claim);
+                plugin.getMessages().send(player, "claim-removed-last", Map.of("claim", claim.getName()));
+            } else {
+                plugin.getMessages().send(player, "claim-removed", Map.of(
+                        "claim", claim.getName(),
+                        "count", String.valueOf(removed)
+                ));
+            }
+            plugin.getClaimsManager().saveAsync();
+            return;
+        }
         event.setCancelled(true);
-        plugin.getMessages().send(event.getPlayer(), "claim-protected");
+        plugin.getMessages().send(player, "claim-protected");
     }
 
     @EventHandler
@@ -135,7 +151,16 @@ public class ClaimListener implements Listener {
 
     @EventHandler
     public void onInventoryMove(InventoryMoveItemEvent event) {
-        if (isClaimedInventory(event.getSource()) || isClaimedInventory(event.getDestination())) {
+        Claim sourceClaim = getClaimForInventory(event.getSource());
+        Claim destinationClaim = getClaimForInventory(event.getDestination());
+        if (sourceClaim == null && destinationClaim == null) {
+            return;
+        }
+        if (sourceClaim != null && destinationClaim != null
+                && sourceClaim.getName().equalsIgnoreCase(destinationClaim.getName())) {
+            return;
+        }
+        if (sourceClaim != null || destinationClaim != null) {
             event.setCancelled(true);
         }
     }
@@ -152,12 +177,12 @@ public class ClaimListener implements Listener {
         event.getInventory().setResult(new ItemStack(Material.AIR));
     }
 
-    private boolean isClaimedInventory(Inventory inventory) {
+    private Claim getClaimForInventory(Inventory inventory) {
         org.bukkit.Location location = plugin.getInventoryLocation(inventory);
         if (location == null) {
-            return false;
+            return null;
         }
-        return plugin.getClaimsManager().isClaimed(location);
+        return plugin.getClaimsManager().getClaimByChestKey(plugin.getClaimsManager().getChestKey(location));
     }
 
     private boolean isClaimedPistonMove(List<Block> blocks) {
