@@ -43,7 +43,7 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
             case "untrust" -> handleTrust(player, args, false);
             case "manage" -> handleManage(player, args);
             case "list" -> handleList(player, args);
-            case "selection" -> handleSelection(player);
+            case "selection" -> handleSelection(player, args);
             case "info" -> handleInfo(player);
             case "unclaim" -> handleUnclaim(player);
             case "help" -> handleHelp(player);
@@ -292,8 +292,14 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
         plugin.getMessages().send(player, "reload");
     }
 
-    private void handleSelection(Player player) {
+    private void handleSelection(Player player, String[] args) {
+        if (args.length > 1 && args[1].equalsIgnoreCase("clear")) {
+            plugin.clearSelection(player);
+            plugin.getMessages().send(player, "selection-cleared");
+            return;
+        }
         Set<org.bukkit.Location> selection = plugin.getSelection(player);
+        SafeChestsXPlugin.SelectionSummary summary = plugin.getSelectionSummary(player);
         boolean isClaimed = plugin.anyClaimed(selection);
         String claimedKey = isClaimed ? "selection-status-yes" : "selection-status-no";
         String claimed = plugin.getMessages().getRaw(claimedKey);
@@ -302,7 +308,9 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
         }
         plugin.getMessages().send(player, "selection-status", Map.of(
                 "count", String.valueOf(selection.size()),
-                "claimed", claimed
+                "claimed", claimed,
+                "pos1", plugin.formatLocation(summary.getPositionOne()),
+                "pos2", plugin.formatLocation(summary.getPositionTwo())
         ));
     }
 
