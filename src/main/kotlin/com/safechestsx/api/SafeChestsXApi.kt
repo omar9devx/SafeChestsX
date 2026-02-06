@@ -2,6 +2,8 @@ package com.safechestsx.api
 
 import org.bukkit.Bukkit
 
+@Suppress("DEPRECATION")
+
 object SafeChestsXApi {
     @JvmStatic
     fun get(): SafeChestsXAPI? {
