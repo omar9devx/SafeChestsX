@@ -36,12 +36,15 @@ SafeChestsX is a lightweight Bukkit/Spigot plugin for claiming and protecting co
 - `/chest <number>` - open a virtual chest anywhere.
 - `/chestpay <amount>` - buy more virtual chests (uses Vault economy).
 - `/scxadmin` - admin management tools (reload, claim cleanup, virtual chest limits).
+- `/bypasscc <player> <claim>` - admin bypass access (acts like trust).
+- `/unbypasscc <player> <claim>` - remove bypass access.
 
 ## Customization
 - Toggle protection for explosions, pistons, and hopper transfers in `settings` (`protect-explosions`, `protect-pistons`, `protect-hoppers`).
 - Adjust wand material, lore, and claim limits in `config.yml`.
 - Choose selection behavior via `settings.selection-mode` (`add` or `replace`).
 - Toggle wand crafting with `settings.allow-wand-craft`.
+- Claims are stored in a fast local SQLite database (`plugins/SafeChestsX/claims.db`) to reduce IO pressure.
 
 ## API
 SafeChestsX registers a service with Bukkit's `ServicesManager`, similar to Vault. For new integrations use the V4 API.

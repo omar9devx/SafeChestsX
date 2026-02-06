@@ -9,10 +9,8 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -20,6 +18,7 @@ import java.util.UUID;
 public class ClaimsManager {
     private final JavaPlugin plugin;
     private final File dataFile;
+    private final com.safechestsx.storage.ClaimsDatabase database;
     private final Map<String, Claim> claimsByName = new HashMap<>();
     private final Map<String, String> claimByChestKey = new HashMap<>();
     private final Object ioLock = new Object();
@@ -27,14 +26,30 @@ public class ClaimsManager {
     public ClaimsManager(JavaPlugin plugin) {
         this.plugin = plugin;
         this.dataFile = new File(plugin.getDataFolder(), "claims.yml");
+        this.database = new com.safechestsx.storage.ClaimsDatabase(plugin);
     }
 
     public void load() {
         claimsByName.clear();
         claimByChestKey.clear();
-        if (!dataFile.exists()) {
+        if (database.isEmpty() && dataFile.exists()) {
+            loadFromYaml();
+            saveSync();
             return;
         }
+        for (com.safechestsx.storage.ClaimRecord record : database.loadAll()) {
+            Claim claim = new Claim(record.getName(), record.getOwner());
+            claim.getTrusted().addAll(record.getTrusted());
+            claim.getBypassed().addAll(record.getBypassed());
+            claim.getChestKeys().addAll(record.getChestKeys());
+            for (String key : record.getChestKeys()) {
+                claimByChestKey.put(key, record.getName());
+            }
+            claimsByName.put(record.getName().toLowerCase(), claim);
+        }
+    }
+
+    private void loadFromYaml() {
         FileConfiguration config = YamlConfiguration.loadConfiguration(dataFile);
         ConfigurationSection section = config.getConfigurationSection("claims");
         if (section == null) {
@@ -68,23 +83,7 @@ public class ClaimsManager {
 
     public void saveSync() {
         synchronized (ioLock) {
-            FileConfiguration config = new YamlConfiguration();
-            ConfigurationSection section = config.createSection("claims");
-            for (Claim claim : claimsByName.values()) {
-                ConfigurationSection claimSection = section.createSection(claim.getName());
-                claimSection.set("owner", claim.getOwner().toString());
-                Set<String> trusted = new HashSet<>();
-                for (UUID uuid : claim.getTrusted()) {
-                    trusted.add(uuid.toString());
-                }
-                claimSection.set("trusted", trusted.stream().toList());
-                claimSection.set("chests", claim.getChestKeys().stream().toList());
-            }
-            try {
-                config.save(dataFile);
-            } catch (IOException e) {
-                plugin.getLogger().severe("Failed to save claims.yml: " + e.getMessage());
-            }
+            database.saveAll(claimsByName.values());
         }
     }
 
@@ -180,7 +179,9 @@ public class ClaimsManager {
     }
 
     public boolean isTrusted(Claim claim, UUID playerId) {
-        return claim.getOwner().equals(playerId) || claim.getTrusted().contains(playerId);
+        return claim.getOwner().equals(playerId)
+                || claim.getTrusted().contains(playerId)
+                || claim.getBypassed().contains(playerId);
     }
 
     public String getTrustedNames(Claim claim) {
@@ -189,6 +190,21 @@ public class ClaimsManager {
         }
         StringBuilder builder = new StringBuilder();
         for (UUID uuid : claim.getTrusted()) {
+            OfflinePlayer player = Bukkit.getOfflinePlayer(uuid);
+            if (builder.length() > 0) {
+                builder.append(", ");
+            }
+            builder.append(player.getName() == null ? uuid.toString() : player.getName());
+        }
+        return builder.toString();
+    }
+
+    public String getBypassNames(Claim claim) {
+        if (claim.getBypassed().isEmpty()) {
+            return "-";
+        }
+        StringBuilder builder = new StringBuilder();
+        for (UUID uuid : claim.getBypassed()) {
             OfflinePlayer player = Bukkit.getOfflinePlayer(uuid);
             if (builder.length() > 0) {
                 builder.append(", ");

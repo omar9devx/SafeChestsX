@@ -26,6 +26,7 @@ interface SafeChestsXApiV4 {
     fun renameClaim(name: String, newName: String): Boolean
     fun deleteClaim(name: String): Boolean
     fun setTrust(claimName: String, playerId: UUID, trusted: Boolean): Boolean
+    fun setBypass(claimName: String, playerId: UUID, bypassed: Boolean): Boolean
     fun getVirtualChestInfo(owner: UUID): VirtualChestInfo
     fun addVirtualChestSlots(owner: UUID, amount: Int): Boolean
     fun setVirtualChestLimit(owner: UUID, limit: Int): Boolean

@@ -8,6 +8,7 @@ public class Claim {
     private final String name;
     private final UUID owner;
     private final Set<UUID> trusted = new HashSet<>();
+    private final Set<UUID> bypassed = new HashSet<>();
     private final Set<String> chestKeys = new HashSet<>();
 
     public Claim(String name, UUID owner) {
@@ -25,6 +26,10 @@ public class Claim {
 
     public Set<UUID> getTrusted() {
         return trusted;
+    }
+
+    public Set<UUID> getBypassed() {
+        return bypassed;
     }
 
     public Set<String> getChestKeys() {

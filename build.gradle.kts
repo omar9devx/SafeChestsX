@@ -22,6 +22,7 @@ dependencies {
     } else {
         compileOnly("net.milkbowl.vault:VaultAPI:1.7")
     }
+    implementation("org.xerial:sqlite-jdbc:3.46.0.0")
     implementation(kotlin("stdlib"))
 }
 

@@ -92,6 +92,17 @@ class SafeChestsXApiV4Impl(
         return true
     }
 
+    override fun setBypass(claimName: String, playerId: UUID, bypassed: Boolean): Boolean {
+        val claim = claimsManager.getClaim(claimName) ?: return false
+        if (bypassed) {
+            claim.bypassed.add(playerId)
+        } else {
+            claim.bypassed.remove(playerId)
+        }
+        claimsManager.saveAsync()
+        return true
+    }
+
     override fun getVirtualChestInfo(owner: UUID): VirtualChestInfo {
         return VirtualChestInfo(owner, chestManager.getChestLimit(owner))
     }

@@ -18,6 +18,12 @@ commands:
   scxadmin:
     description: SafeChestsX admin tools.
     usage: /scxadmin
+  bypasscc:
+    description: Bypass a claim for a player.
+    usage: /bypasscc <player> <claim>
+  unbypasscc:
+    description: Remove bypass for a claim.
+    usage: /unbypasscc <player> <claim>
 permissions:
   safechestsx.use:
     description: Access base command.
@@ -33,6 +39,9 @@ permissions:
     default: true
   safechestsx.admin:
     description: Bypass ownership checks.
+    default: op
+  safechestsx.bypass:
+    description: Manage claim bypass access.
     default: op
   safechestsx.chest:
     description: Access virtual chests.

@@ -70,6 +70,16 @@ public class SafeChestsXPlugin extends JavaPlugin {
             getCommand("scxadmin").setExecutor(adminCommand);
             getCommand("scxadmin").setTabCompleter(adminCommand);
         }
+        com.safechestsx.command.BypassCommand bypassCommand = new com.safechestsx.command.BypassCommand(this, true);
+        if (getCommand("bypasscc") != null) {
+            getCommand("bypasscc").setExecutor(bypassCommand);
+            getCommand("bypasscc").setTabCompleter(bypassCommand);
+        }
+        com.safechestsx.command.BypassCommand unbypassCommand = new com.safechestsx.command.BypassCommand(this, false);
+        if (getCommand("unbypasscc") != null) {
+            getCommand("unbypasscc").setExecutor(unbypassCommand);
+            getCommand("unbypasscc").setTabCompleter(unbypassCommand);
+        }
         registerListener(new ClaimListener(this));
         registerListener(new VirtualChestListener(virtualChestManager));
         getServer().getServicesManager().register(com.safechestsx.api.SafeChestsXAPI.class,

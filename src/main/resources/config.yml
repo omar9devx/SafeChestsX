@@ -22,7 +22,7 @@ messages:
   chest-limit: "&cToo many containers selected ({count}). Max allowed is {limit}."
   trust-added: "&aTrusted {player} for claim '&f{claim}&a'."
   trust-removed: "&eUntrusted {player} for claim '&f{claim}&e'."
-  manage-info: "&aClaim '&f{claim}&a' owner: &f{owner}&a, containers: &f{count}&a, trusted: &f{trusted}&a."
+  manage-info: "&aClaim '&f{claim}&a' owner: &f{owner}&a, containers: &f{count}&a, trusted: &f{trusted}&a, bypassed: &f{bypassed}&a."
   manage-deleted: "&cClaim '&f{claim}&c' deleted."
   manage-renamed: "&aClaim renamed to '&f{claim}&a'."
   selection-claimed: "&cOne or more containers are already claimed."
@@ -32,6 +32,9 @@ messages:
   info-target: "&cLook at a claimed container to view info."
   unclaim-target: "&cLook at a claimed container to unclaim it."
   unclaim-success: "&cClaim '&f{claim}&c' has been removed."
+  bypass-usage: "&eUsage: {usage}"
+  bypass-added: "&aBypass granted to &f{player}&a for claim '&f{claim}&a'."
+  bypass-removed: "&eBypass removed from &f{player}&e for claim '&f{claim}&e'."
   trust-target: "&cLook at a claimed container or use /claimchest manage."
   player-not-found: "&cPlayer not found."
   reload: "&aConfiguration reloaded."
@@ -104,6 +107,9 @@ messages:
     - "&e/scxadmin clearselection <player> &7- clear selection."
     - "&e/scxadmin addvchests <player> <amount> &7- add virtual chests."
     - "&e/scxadmin setvchests <player> <amount> &7- set virtual chest limit."
+  bypass-help:
+    - "&e/bypasscc <player> <claim> &7- add bypass access."
+    - "&e/unbypasscc <player> <claim> &7- remove bypass access."
 settings:
   selection-mode: add
   wand-material: WOODEN_SHOVEL

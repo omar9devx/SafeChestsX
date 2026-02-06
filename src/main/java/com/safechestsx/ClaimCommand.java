@@ -230,7 +230,8 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
                 "claim", claim.getName(),
                 "owner", Bukkit.getOfflinePlayer(claim.getOwner()).getName() == null ? claim.getOwner().toString() : Bukkit.getOfflinePlayer(claim.getOwner()).getName(),
                 "count", String.valueOf(claim.getChestKeys().size()),
-                "trusted", plugin.getClaimsManager().getTrustedNames(claim)
+                "trusted", plugin.getClaimsManager().getTrustedNames(claim),
+                "bypassed", plugin.getClaimsManager().getBypassNames(claim)
         ));
     }
 
@@ -360,7 +361,8 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
                 "claim", claim.getName(),
                 "owner", Bukkit.getOfflinePlayer(claim.getOwner()).getName() == null ? claim.getOwner().toString() : Bukkit.getOfflinePlayer(claim.getOwner()).getName(),
                 "count", String.valueOf(claim.getChestKeys().size()),
-                "trusted", plugin.getClaimsManager().getTrustedNames(claim)
+                "trusted", plugin.getClaimsManager().getTrustedNames(claim),
+                "bypassed", plugin.getClaimsManager().getBypassNames(claim)
         ));
     }
 

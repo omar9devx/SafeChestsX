@@ -51,8 +51,8 @@ class AdminCommand(private val plugin: SafeChestsXPlugin) : CommandExecutor, Tab
         val claimCount = plugin.claimsManager.claims.size
         val virtualCount = plugin.virtualChestManager.profileCount
         plugin.messages.send(sender, "admin-stats", mapOf(
-            "claims", claimCount.toString(),
-            "virtual", virtualCount.toString()
+            "claims" to claimCount.toString(),
+            "virtual" to virtualCount.toString()
         ))
     }
 
@@ -63,13 +63,13 @@ class AdminCommand(private val plugin: SafeChestsXPlugin) : CommandExecutor, Tab
             return
         }
         plugin.messages.send(sender, "admin-list-header", mapOf(
-            "count", extensions.size.toString(),
-            "scope", "extensions"
+            "count" to extensions.size.toString(),
+            "scope" to "extensions"
         ))
         extensions.forEach { extension ->
             plugin.messages.send(sender, "admin-extensions-entry", mapOf(
-                "name", extension.displayName,
-                "id", extension.id
+                "name" to extension.displayName,
+                "id" to extension.id
             ))
         }
     }
@@ -78,7 +78,7 @@ class AdminCommand(private val plugin: SafeChestsXPlugin) : CommandExecutor, Tab
         val key = args.getOrNull(1)?.lowercase(Locale.ROOT)
         val value = args.getOrNull(2)?.lowercase(Locale.ROOT)
         if (key == null || value == null) {
-            plugin.messages.send(sender, "admin-usage", mapOf("usage", "/scxadmin setflag <explosions|pistons|hoppers|wandcraft> <true|false>"))
+            plugin.messages.send(sender, "admin-usage", mapOf("usage" to "/scxadmin setflag <explosions|pistons|hoppers|wandcraft> <true|false>"))
             return
         }
         val boolValue = when (value) {
@@ -104,20 +104,20 @@ class AdminCommand(private val plugin: SafeChestsXPlugin) : CommandExecutor, Tab
         plugin.config.set(configKey, boolValue)
         plugin.saveConfig()
         plugin.messages.send(sender, "admin-flag-updated", mapOf(
-            "flag", key,
-            "value", boolValue.toString()
+            "flag" to key,
+            "value" to boolValue.toString()
         ))
     }
 
     private fun handleSetMode(sender: CommandSender, args: Array<String>) {
         val mode = args.getOrNull(1)?.lowercase(Locale.ROOT)
         if (mode == null || (mode != "add" && mode != "replace")) {
-            plugin.messages.send(sender, "admin-usage", mapOf("usage", "/scxadmin setmode <add|replace>"))
+            plugin.messages.send(sender, "admin-usage", mapOf("usage" to "/scxadmin setmode <add|replace>"))
             return
         }
         plugin.config.set("settings.selection-mode", mode)
         plugin.saveConfig()
-        plugin.messages.send(sender, "admin-mode-updated", mapOf("mode", mode))
+        plugin.messages.send(sender, "admin-mode-updated", mapOf("mode" to mode))
     }
 
     private fun handleListClaims(sender: CommandSender, args: Array<String>) {
@@ -132,14 +132,14 @@ class AdminCommand(private val plugin: SafeChestsXPlugin) : CommandExecutor, Tab
             return
         }
         plugin.messages.send(sender, "admin-list-header", mapOf(
-            "count", claims.size.toString(),
-            "scope", target?.name ?: plugin.messages.getRaw("list-scope-all").ifBlank { "all" }
+            "count" to claims.size.toString(),
+            "scope" to (target?.name ?: plugin.messages.getRaw("list-scope-all").ifBlank { "all" })
         ))
         claims.sortedBy { it.name.lowercase(Locale.ROOT) }.forEach { claim ->
             plugin.messages.send(sender, "list-entry", mapOf(
-                "claim", claim.name,
-                "owner", Bukkit.getOfflinePlayer(claim.owner).name ?: claim.owner.toString(),
-                "count", claim.chestKeys.size.toString()
+                "claim" to claim.name,
+                "owner" to (Bukkit.getOfflinePlayer(claim.owner).name ?: claim.owner.toString()),
+                "count" to claim.chestKeys.size.toString()
             ))
         }
     }
@@ -147,7 +147,7 @@ class AdminCommand(private val plugin: SafeChestsXPlugin) : CommandExecutor, Tab
     private fun handleDeleteClaim(sender: CommandSender, args: Array<String>) {
         val name = args.getOrNull(1).orEmpty()
         if (name.isBlank()) {
-            plugin.messages.send(sender, "admin-usage", mapOf("usage", "/scxadmin deleteclaim <name>"))
+            plugin.messages.send(sender, "admin-usage", mapOf("usage" to "/scxadmin deleteclaim <name>"))
             return
         }
         val claim = plugin.claimsManager.getClaim(name)
@@ -157,13 +157,13 @@ class AdminCommand(private val plugin: SafeChestsXPlugin) : CommandExecutor, Tab
         }
         plugin.claimsManager.deleteClaim(claim)
         plugin.claimsManager.saveAsync()
-        plugin.messages.send(sender, "admin-claim-deleted", mapOf("claim", claim.name))
+        plugin.messages.send(sender, "admin-claim-deleted", mapOf("claim" to claim.name))
     }
 
     private fun handleClaimInfo(sender: CommandSender, args: Array<String>) {
         val name = args.getOrNull(1).orEmpty()
         if (name.isBlank()) {
-            plugin.messages.send(sender, "admin-usage", mapOf("usage", "/scxadmin claiminfo <name>"))
+            plugin.messages.send(sender, "admin-usage", mapOf("usage" to "/scxadmin claiminfo <name>"))
             return
         }
         val claim = plugin.claimsManager.getClaim(name)
@@ -181,7 +181,7 @@ class AdminCommand(private val plugin: SafeChestsXPlugin) : CommandExecutor, Tab
             return
         }
         plugin.giveWandAndGuide(target)
-        plugin.messages.send(sender, "admin-givewand", mapOf("player", target.name))
+        plugin.messages.send(sender, "admin-givewand", mapOf("player" to target.name))
     }
 
     private fun handleClearSelection(sender: CommandSender, args: Array<String>) {
@@ -191,21 +191,21 @@ class AdminCommand(private val plugin: SafeChestsXPlugin) : CommandExecutor, Tab
             return
         }
         plugin.clearSelection(target)
-        plugin.messages.send(sender, "admin-selection-cleared", mapOf("player", target.name))
+        plugin.messages.send(sender, "admin-selection-cleared", mapOf("player" to target.name))
     }
 
     private fun handleAddVirtualChests(sender: CommandSender, args: Array<String>) {
         val target = resolvePlayer(args.getOrNull(1))
         val amount = args.getOrNull(2)?.toIntOrNull()
         if (target == null || amount == null) {
-            plugin.messages.send(sender, "admin-usage", mapOf("usage", "/scxadmin addvchests <player> <amount>"))
+            plugin.messages.send(sender, "admin-usage", mapOf("usage" to "/scxadmin addvchests <player> <amount>"))
             return
         }
         val success = plugin.virtualChestManager.addChestSlots(target.uniqueId, amount)
         val key = if (success) "admin-vchests-added" else "admin-vchests-failed"
         plugin.messages.send(sender, key, mapOf(
-            "player", target.name ?: target.uniqueId.toString(),
-            "amount", amount.toString()
+            "player" to (target.name ?: target.uniqueId.toString()),
+            "amount" to amount.toString()
         ))
     }
 
@@ -213,14 +213,14 @@ class AdminCommand(private val plugin: SafeChestsXPlugin) : CommandExecutor, Tab
         val target = resolvePlayer(args.getOrNull(1))
         val amount = args.getOrNull(2)?.toIntOrNull()
         if (target == null || amount == null) {
-            plugin.messages.send(sender, "admin-usage", mapOf("usage", "/scxadmin setvchests <player> <amount>"))
+            plugin.messages.send(sender, "admin-usage", mapOf("usage" to "/scxadmin setvchests <player> <amount>"))
             return
         }
         val success = plugin.virtualChestManager.setChestLimit(target.uniqueId, amount)
         val key = if (success) "admin-vchests-set" else "admin-vchests-failed"
         plugin.messages.send(sender, key, mapOf(
-            "player", target.name ?: target.uniqueId.toString(),
-            "amount", amount.toString()
+            "player" to (target.name ?: target.uniqueId.toString()),
+            "amount" to amount.toString()
         ))
     }
 
@@ -230,10 +230,11 @@ class AdminCommand(private val plugin: SafeChestsXPlugin) : CommandExecutor, Tab
 
     private fun sendClaimInfo(sender: CommandSender, claim: Claim) {
         plugin.messages.send(sender, "manage-info", mapOf(
-            "claim", claim.name,
-            "owner", Bukkit.getOfflinePlayer(claim.owner).name ?: claim.owner.toString(),
-            "count", claim.chestKeys.size.toString(),
-            "trusted", plugin.claimsManager.getTrustedNames(claim)
+            "claim" to claim.name,
+            "owner" to (Bukkit.getOfflinePlayer(claim.owner).name ?: claim.owner.toString()),
+            "count" to claim.chestKeys.size.toString(),
+            "trusted" to plugin.claimsManager.getTrustedNames(claim),
+            "bypassed" to plugin.claimsManager.getBypassNames(claim)
         ))
     }
 
