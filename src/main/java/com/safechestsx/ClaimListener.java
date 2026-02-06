@@ -111,6 +111,9 @@ public class ClaimListener implements Listener {
 
     @EventHandler
     public void onEntityExplode(EntityExplodeEvent event) {
+        if (!plugin.getConfig().getBoolean("settings.protect-explosions", true)) {
+            return;
+        }
         Entity entity = event.getEntity();
         if (!plugin.isProtectedExplosion(entity)) {
             return;
@@ -126,6 +129,9 @@ public class ClaimListener implements Listener {
 
     @EventHandler
     public void onBlockExplode(BlockExplodeEvent event) {
+        if (!plugin.getConfig().getBoolean("settings.protect-explosions", true)) {
+            return;
+        }
         Iterator<Block> iterator = event.blockList().iterator();
         while (iterator.hasNext()) {
             Block block = iterator.next();
@@ -137,6 +143,9 @@ public class ClaimListener implements Listener {
 
     @EventHandler
     public void onPistonExtend(BlockPistonExtendEvent event) {
+        if (!plugin.getConfig().getBoolean("settings.protect-pistons", true)) {
+            return;
+        }
         if (isClaimedPistonMove(event.getBlocks())) {
             event.setCancelled(true);
         }
@@ -144,6 +153,9 @@ public class ClaimListener implements Listener {
 
     @EventHandler
     public void onPistonRetract(BlockPistonRetractEvent event) {
+        if (!plugin.getConfig().getBoolean("settings.protect-pistons", true)) {
+            return;
+        }
         if (isClaimedPistonMove(event.getBlocks())) {
             event.setCancelled(true);
         }
@@ -151,6 +163,9 @@ public class ClaimListener implements Listener {
 
     @EventHandler
     public void onInventoryMove(InventoryMoveItemEvent event) {
+        if (!plugin.getConfig().getBoolean("settings.protect-hoppers", true)) {
+            return;
+        }
         Claim sourceClaim = getClaimForInventory(event.getSource());
         Claim destinationClaim = getClaimForInventory(event.getDestination());
         if (sourceClaim == null && destinationClaim == null) {
@@ -167,11 +182,18 @@ public class ClaimListener implements Listener {
 
     @EventHandler
     public void onPrepareCraft(PrepareItemCraftEvent event) {
+        if (plugin.getConfig().getBoolean("settings.allow-wand-craft", false)) {
+            return;
+        }
         if (event.getRecipe() == null) {
             return;
         }
         ItemStack result = event.getRecipe().getResult();
-        if (result == null || result.getType() != Material.WOODEN_SHOVEL) {
+        Material wandMaterial = Material.matchMaterial(plugin.getConfig().getString("settings.wand-material", "WOODEN_SHOVEL"));
+        if (wandMaterial == null) {
+            wandMaterial = Material.WOODEN_SHOVEL;
+        }
+        if (result == null || result.getType() != wandMaterial) {
             return;
         }
         event.getInventory().setResult(new ItemStack(Material.AIR));

@@ -102,7 +102,11 @@ public class VirtualChestManager {
     }
 
     public int getChestCount(UUID owner) {
-        return getProfile(owner).limit();
+        return getProfile(owner).chests().size();
+    }
+
+    public int getProfileCount() {
+        return cache.size();
     }
 
     public boolean addChestSlots(UUID owner, int amount) {
@@ -116,6 +120,20 @@ public class VirtualChestManager {
             return false;
         }
         profile.setLimit(target);
+        saveAsync();
+        return true;
+    }
+
+    public boolean setChestLimit(UUID owner, int newLimit) {
+        if (newLimit <= 0) {
+            return false;
+        }
+        int max = plugin.getConfig().getInt("settings.max-virtual-chests", 0);
+        if (max > 0 && newLimit > max) {
+            return false;
+        }
+        VirtualChestProfile profile = getProfile(owner);
+        profile.setLimit(newLimit);
         saveAsync();
         return true;
     }
