@@ -8,7 +8,7 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.TNTPrimed;
 import org.bukkit.entity.minecart.ExplosiveMinecart;
-import org.bukkit.entity.monster.Creeper;
+import org.bukkit.entity.Creeper;
 import org.bukkit.event.Listener;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.Inventory;
@@ -32,7 +32,7 @@ public class SafeChestsXPlugin extends JavaPlugin {
     private ClaimsManager claimsManager;
     private VirtualChestManager virtualChestManager;
     private Messages messages;
-    private final Map<UUID, Set<org.bukkit.Location>> selections = new HashMap<>();
+    private final Map<UUID, SelectionState> selections = new HashMap<>();
     private NamespacedKey wandKey;
     private net.milkbowl.vault.economy.Economy economy;
 
@@ -63,6 +63,11 @@ public class SafeChestsXPlugin extends JavaPlugin {
             getCommand("chestpay").setExecutor(chestCommand);
             getCommand("chestpay").setTabCompleter(chestCommand);
         }
+        com.safechestsx.command.AdminCommand adminCommand = new com.safechestsx.command.AdminCommand(this);
+        if (getCommand("scxadmin") != null) {
+            getCommand("scxadmin").setExecutor(adminCommand);
+            getCommand("scxadmin").setTabCompleter(adminCommand);
+        }
         registerListener(new ClaimListener(this));
         registerListener(new VirtualChestListener(virtualChestManager));
         getServer().getServicesManager().register(com.safechestsx.api.SafeChestsXAPI.class,
@@ -71,6 +76,10 @@ public class SafeChestsXPlugin extends JavaPlugin {
                 org.bukkit.plugin.ServicePriority.Normal);
         getServer().getServicesManager().register(com.safechestsx.api.v3.SafeChestsXApiV3.class,
                 new com.safechestsx.api.v3.SafeChestsXApiV3Impl(claimsManager, virtualChestManager),
+                this,
+                org.bukkit.plugin.ServicePriority.Normal);
+        getServer().getServicesManager().register(com.safechestsx.api.v4.SafeChestsXApiV4.class,
+                new com.safechestsx.api.v4.SafeChestsXApiV4Impl(claimsManager, virtualChestManager),
                 this,
                 org.bukkit.plugin.ServicePriority.Normal);
     }
@@ -200,7 +209,7 @@ public class SafeChestsXPlugin extends JavaPlugin {
         meta.setTitle(getConfig().getString("settings.book-title", "SafeChestsX Guide"));
         meta.setAuthor(getConfig().getString("settings.book-author", "SafeChestsX"));
         meta.setPages(List.of(
-                "SafeChestsX Quick Guide\n\n1) Run /claimchest to get the wand.\n2) Right click containers to select.\n3) /claimchest claim <name>\n4) /claimchest trust <player> while looking at a container.\n\nUse /claimchest manage for advanced actions.",
+                "SafeChestsX Quick Guide\n\n1) Run /claimchest to get the wand.\n2) Right click a container to set Position 1.\n3) Left click a container to set Position 2.\n4) /claimchest claim <name>\n\nUse /claimchest manage for advanced actions.",
                 "Manage Actions:\n- add/remove (with selection)\n- info\n- delete\n- rename -a <newName>\n- trust/untrust -a <player>\n\nClaims prevent breaking, opening, explosions, and hopper access."
         ));
         book.setItemMeta(meta);
@@ -208,31 +217,57 @@ public class SafeChestsXPlugin extends JavaPlugin {
     }
 
     public void addSelection(Player player, org.bukkit.Location location) {
-        if (!isContainerBlock(location.getBlock())) {
-            messages.send(player, "selection-invalid");
-            return;
-        }
-        Set<org.bukkit.Location> targets = getContainerLocations(location.getBlock());
-        selections.computeIfAbsent(player.getUniqueId(), k -> new HashSet<>()).addAll(targets);
-        messages.send(player, "selection-add");
+        setSelectionPosition(player, location, SelectionPosition.PRIMARY);
     }
 
     public void removeSelection(Player player, org.bukkit.Location location) {
-        if (!isContainerBlock(location.getBlock())) {
-            messages.send(player, "selection-invalid");
-            return;
-        }
-        Set<org.bukkit.Location> targets = getContainerLocations(location.getBlock());
-        selections.computeIfAbsent(player.getUniqueId(), k -> new HashSet<>()).removeAll(targets);
-        messages.send(player, "selection-remove");
+        setSelectionPosition(player, location, SelectionPosition.SECONDARY);
     }
 
     public Set<org.bukkit.Location> getSelection(Player player) {
-        return new HashSet<>(selections.getOrDefault(player.getUniqueId(), Set.of()));
+        SelectionState state = selections.get(player.getUniqueId());
+        if (state == null) {
+            return new HashSet<>();
+        }
+        return new HashSet<>(state.selected);
     }
 
     public void clearSelection(Player player) {
         selections.remove(player.getUniqueId());
+    }
+
+    public SelectionSummary getSelectionSummary(Player player) {
+        SelectionState state = selections.get(player.getUniqueId());
+        if (state == null) {
+            return new SelectionSummary(0, null, null);
+        }
+        return new SelectionSummary(state.selected.size(), state.positionOne, state.positionTwo);
+    }
+
+    public void setSelectionPosition(Player player, org.bukkit.Location location, SelectionPosition position) {
+        if (!isContainerBlock(location.getBlock())) {
+            messages.send(player, "selection-invalid");
+            return;
+        }
+        SelectionState state = selections.computeIfAbsent(player.getUniqueId(), k -> new SelectionState());
+        if (position == SelectionPosition.PRIMARY) {
+            state.positionOne = location;
+            messages.send(player, "selection-pos1", Map.of("location", formatLocation(location)));
+        } else {
+            state.positionTwo = location;
+            messages.send(player, "selection-pos2", Map.of("location", formatLocation(location)));
+        }
+        state.selected.addAll(getContainerLocations(location.getBlock()));
+    }
+
+    public String formatLocation(org.bukkit.Location location) {
+        if (location == null || location.getWorld() == null) {
+            return "-";
+        }
+        return location.getWorld().getName() + " "
+                + location.getBlockX() + " "
+                + location.getBlockY() + " "
+                + location.getBlockZ();
     }
 
     public boolean anyClaimed(Set<org.bukkit.Location> locations) {
@@ -279,6 +314,41 @@ public class SafeChestsXPlugin extends JavaPlugin {
 
     public boolean isProtectedExplosion(Entity entity) {
         return entity instanceof Creeper || entity instanceof TNTPrimed || entity instanceof ExplosiveMinecart;
+    }
+
+    public enum SelectionPosition {
+        PRIMARY,
+        SECONDARY
+    }
+
+    private static class SelectionState {
+        private org.bukkit.Location positionOne;
+        private org.bukkit.Location positionTwo;
+        private final Set<org.bukkit.Location> selected = new HashSet<>();
+    }
+
+    public static class SelectionSummary {
+        private final int count;
+        private final org.bukkit.Location positionOne;
+        private final org.bukkit.Location positionTwo;
+
+        public SelectionSummary(int count, org.bukkit.Location positionOne, org.bukkit.Location positionTwo) {
+            this.count = count;
+            this.positionOne = positionOne;
+            this.positionTwo = positionTwo;
+        }
+
+        public int getCount() {
+            return count;
+        }
+
+        public org.bukkit.Location getPositionOne() {
+            return positionOne;
+        }
+
+        public org.bukkit.Location getPositionTwo() {
+            return positionTwo;
+        }
     }
 
     private void setupEconomy() {

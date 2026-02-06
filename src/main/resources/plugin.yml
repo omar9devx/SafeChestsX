@@ -1,5 +1,5 @@
 name: SafeChestsX
-version: 3.0.0
+version: 4.0.0
 main: com.safechestsx.SafeChestsXPlugin
 api-version: 1.21
 author: SafeChestsX
@@ -15,6 +15,9 @@ commands:
   chestpay:
     description: Purchase additional virtual chests.
     usage: /chestpay <amount>
+  scxadmin:
+    description: SafeChestsX admin tools.
+    usage: /scxadmin
 permissions:
   safechestsx.use:
     description: Access base command.
